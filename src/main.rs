@@ -34,6 +34,9 @@ enum AppArgs {
 
         #[arg(help = "Port description")]
         description: Option<String>,
+
+        #[arg(short, long, help = "Confirm add", default_value_t)]
+        confirm: bool,
     },
 
     #[command(about = "List ports", aliases = ["ls"])]

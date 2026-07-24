@@ -26,8 +26,12 @@ impl Display for PortEntry {
 
 pub fn handle_cli(args: App, config: &mut Data) -> Result<()> {
     match args.command {
-        AppArgs::Add { port, description } => {
-            add_port(config, port, description).context("Failed to add port")?;
+        AppArgs::Add {
+            port,
+            description,
+            confirm,
+        } => {
+            add_port(config, port, description, confirm).context("Failed to add port")?;
         }
         AppArgs::List { reverse } => list_ports(config, reverse).context("Failed to list ports")?,
         AppArgs::Remove { port, confirm } => {
@@ -43,8 +47,8 @@ fn add_port(
     config: &mut Data,
     given_port: Option<u16>,
     given_description: Option<String>,
+    confirm: bool,
 ) -> Result<()> {
-    let confirm = given_port.is_some() && given_description.is_some();
     let Some(entry) =
         prompt_port(config, given_port, given_description).context("Failed to prompt a port")?
     else {
