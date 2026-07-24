@@ -15,6 +15,11 @@ include = ["assets/**/*", "src/**/*", "Cargo.toml", "LICENSE", "README.md"]
 [dependencies]
 anyhow = "1.0.104"
 clap = { version = "4.6.4", features = ["derive", "env"] }
+configura = "1.1.0"
+inquire = "0.9.4"
+serde = { version = "1.0.229", features = ["derive"] }
+tabela = "0.2.0"
+thiserror = "2.0.19"
 
 [profile.release]
 strip = true
