@@ -55,4 +55,30 @@ impl Data {
 
         Ok(())
     }
+
+    /// Remove a port from the config file
+    ///
+    /// ## Arguments
+    ///
+    /// * `port` - The port number to remove (1-65535)
+    ///
+    /// ## Errors
+    ///
+    /// * [`Error::InvalidPort`] - If the port is invalid (is 0)
+    /// * [`Error::PortDoesNotExist`] - If the port does not exist
+    /// * [`Error::ConfigError`] - If there is an error with saving the config file
+    pub fn remove_port(&mut self, port: u16) -> Result<()> {
+        if port == 0 {
+            return Err(Error::InvalidPort(port));
+        }
+
+        if !self.ports.contains_key(&port) {
+            return Err(Error::PortDoesNotExist(port));
+        }
+
+        self.ports.remove(&port);
+        self.save()?;
+
+        Ok(())
+    }
 }

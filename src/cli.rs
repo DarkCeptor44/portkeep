@@ -4,7 +4,8 @@ use crate::{
     utils::{InquireExt, validate_port, validate_text},
 };
 use anyhow::{Context, Result};
-use inquire::{Confirm, CustomType, Text};
+use inquire::{Confirm, CustomType, Select, Text};
+use std::fmt::Display;
 use tabela::{Alignment, Cell, CellStyle, Row, Table};
 
 #[derive(Debug)]
@@ -13,12 +14,25 @@ struct PortEntry {
     description: String,
 }
 
+impl Display for PortEntry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.description.trim().is_empty() {
+            write!(f, "{}", self.port)
+        } else {
+            write!(f, "{} ({})", self.port, self.description)
+        }
+    }
+}
+
 pub fn handle_cli(args: App, config: &mut Data) -> Result<()> {
     match args.command {
         AppArgs::Add { port, description } => {
             add_port(config, port, description).context("Failed to add port")?;
         }
         AppArgs::List { reverse } => list_ports(config, reverse).context("Failed to list ports")?,
+        AppArgs::Remove { port, confirm } => {
+            remove_port(config, port, confirm).context("Failed to remove port")?;
+        }
         AppArgs::Serve => unreachable!("Serve command must be run at the root"),
     }
 
@@ -30,6 +44,7 @@ fn add_port(
     given_port: Option<u16>,
     given_description: Option<String>,
 ) -> Result<()> {
+    let confirm = given_port.is_some() && given_description.is_some();
     let Some(entry) =
         prompt_port(config, given_port, given_description).context("Failed to prompt a port")?
     else {
@@ -39,11 +54,12 @@ fn add_port(
     let port = entry.port;
     let description = entry.description;
 
-    if Confirm::new("Do you want to save this port?")
-        .with_default(false)
-        .with_help_message(&format!("{port} ({description})"))
-        .prompt()
-        .unwrap_or(false)
+    if confirm
+        || Confirm::new("Do you want to save this port?")
+            .with_default(false)
+            .with_help_message(&format!("{port} ({description})"))
+            .prompt()
+            .unwrap_or(false)
     {
         config
             .add_port(port, description.clone())
@@ -80,6 +96,53 @@ fn list_ports(config: &Data, reverse: bool) -> Result<()> {
         .with_separator("  ");
 
     println!("{}", table.format().context("Failed to format port list")?);
+    Ok(())
+}
+
+fn remove_port(config: &mut Data, given_port: Option<u16>, confirm: bool) -> Result<()> {
+    if config.ports.is_empty() {
+        println!("No ports found");
+        return Ok(());
+    }
+
+    let ports: Vec<PortEntry> = config
+        .ports
+        .iter()
+        .map(|(k, v)| PortEntry {
+            port: *k,
+            description: v.clone(),
+        })
+        .collect();
+    let entry = if let Some(p) = given_port {
+        PortEntry {
+            port: p,
+            description: String::new(),
+        }
+    } else {
+        let Some(p) = Select::new("Choose a port to remove", ports).prompt_ext()? else {
+            return Ok(());
+        };
+
+        p
+    };
+
+    if !config.ports.contains_key(&entry.port) {
+        return Err(Error::PortDoesNotExist(entry.port).into());
+    }
+
+    if confirm
+        || Confirm::new("Do you want to save this port?")
+            .with_default(false)
+            .with_help_message(&format!("{entry}"))
+            .prompt()
+            .unwrap_or(false)
+    {
+        config
+            .remove_port(entry.port)
+            .context("Failed to remove port from config file")?;
+        println!("Removed port {entry}");
+    }
+
     Ok(())
 }
 

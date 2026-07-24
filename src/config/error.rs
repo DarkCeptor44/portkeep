@@ -12,4 +12,7 @@ pub enum Error {
 
     #[error("Port already exists: {0}")]
     PortAlreadyExists(u16),
+
+    #[error("Port does not exist: {0}")]
+    PortDoesNotExist(u16),
 }

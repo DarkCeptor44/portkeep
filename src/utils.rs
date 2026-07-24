@@ -1,6 +1,7 @@
 #![allow(clippy::unnecessary_wraps, clippy::trivially_copy_pass_by_ref)]
 
-use inquire::{CustomType, InquireError, Text, validator::Validation};
+use inquire::{CustomType, InquireError, Select, Text, validator::Validation};
+use std::fmt::Display;
 
 pub trait InquireExt<T> {
     fn prompt_ext(self) -> Result<Option<T>, InquireError>;
@@ -19,6 +20,19 @@ impl InquireExt<String> for Text<'_, '_> {
 impl<T> InquireExt<T> for CustomType<'_, T>
 where
     T: Clone,
+{
+    fn prompt_ext(self) -> Result<Option<T>, InquireError> {
+        match self.prompt() {
+            Ok(t) => Ok(Some(t)),
+            Err(InquireError::OperationCanceled | InquireError::OperationInterrupted) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+}
+
+impl<T> InquireExt<T> for Select<'_, T>
+where
+    T: Display,
 {
     fn prompt_ext(self) -> Result<Option<T>, InquireError> {
         match self.prompt() {

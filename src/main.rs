@@ -42,6 +42,15 @@ enum AppArgs {
         reverse: bool,
     },
 
+    #[command(about = "Remove a port", aliases = ["r", "rm"])]
+    Remove {
+        #[arg(help = "Port number to remove")]
+        port: Option<u16>,
+
+        #[arg(short, long, help = "Confirm removal", default_value_t)]
+        confirm: bool,
+    },
+
     #[command(about = "Serve portkeep")]
     Serve,
 }
