@@ -1,6 +1,28 @@
 [package]
 name = "portkeep"
 version = "0.1.0"
+authors = ["DarkCeptor44"]
+description = "A lightweight CLI and web server to track and manage local port allocations."
 edition = "2024"
+rust-version = "1.85"
+license = "MPL-2.0"
+homepage = "https://github.com/DarkCeptor44/portkeep"
+repository = "https://github.com/DarkCeptor44/portkeep"
+keywords = ["cli", "port", "management", "server", "local"]
+categories = ["web-programming::http-server", "command-line-utilities"]
+include = ["assets/**/*", "src/**/*", "Cargo.toml", "LICENSE", "README.md"]
 
 [dependencies]
+anyhow = "1.0.104"
+clap = { version = "4.6.4", features = ["derive", "env"] }
+
+[profile.release]
+strip = true
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.fast]
+inherits = "release"
+lto = false
