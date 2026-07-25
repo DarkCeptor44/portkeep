@@ -1,15 +1,23 @@
 <script lang="ts">
 	import "./layout.css";
 	import { onMount } from "svelte";
+	import { appState } from "$lib/api.svelte";
+	import { t } from "$lib/i18n/index.svelte";
 
 	import LangPicker from "$lib/components/LangPicker.svelte";
-	import { t } from "$lib/i18n/index.svelte";
 
 	onMount(() => {
 		if (import.meta.env.DEV) {
 			import("eruda").then((eruda) => eruda.default.init());
 		}
 	});
+
+	const allocatedCount = $derived(
+		appState.ports.filter((item) => item.description !== null).length,
+	);
+	const activeCount = $derived(
+		appState.ports.filter((item) => item.is_listening).length,
+	);
 
 	let { children } = $props();
 </script>
@@ -44,16 +52,16 @@
 					class="hidden sm:flex items-center gap-3 text-xs font-medium"
 				>
 					<span
-						class="rounded-md bg-slate-800 px-2.5 py-1 text-slate-400"
+						class="rounded-md border border-transparent bg-slate-800 px-2.5 py-1 text-slate-400"
 					>
 						{t("stats.allocated")}:
-						<strong class="text-slate-200">12</strong>
+						<strong class="text-slate-200">{allocatedCount}</strong>
 					</span>
 					<span
 						class="rounded-md border border-emerald-800/40 bg-emerald-950/60 px-2.5 py-1 text-emerald-400"
 					>
 						{t("stats.active")}:
-						<strong class="text-emerald-300">4</strong>
+						<strong class="text-emerald-300">{activeCount}</strong>
 					</span>
 				</div>
 

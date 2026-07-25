@@ -11,12 +11,20 @@ export const translations = {
 			title: "Register New Port",
 		},
 		list: {
+			add: "Add",
+			delete: "Delete",
+			edit: "Edit",
+			empty: "No ports registered",
+			inactive: "Inactive",
+			listening: "Listening",
+			loading: "Loading...",
+			noDesc: "Unregistered Port",
 			searchPlaceholder: "Search ports or descriptions...",
 			title: "Registered Ports",
 		},
 		stats: {
 			active: "Active",
-			allocated: "Allocated",
+			allocated: "Registered",
 		},
 	},
 
@@ -32,12 +40,20 @@ export const translations = {
 			title: "Registrar Nova Porta",
 		},
 		list: {
+			add: "Adicionar",
+			delete: "Deletar",
+			edit: "Editar",
+			empty: "Nenhuma porta registrada",
+			inactive: "Inativo",
+			listening: "Ouvindo",
+			loading: "Carregando...",
+			noDesc: "Porta Não Registrada",
 			searchPlaceholder: "Pesquisar portas ou descrições...",
 			title: "Portas Registradas",
 		},
 		stats: {
 			active: "Ativo",
-			allocated: "Alocado",
+			allocated: "Registrado",
 		},
 	},
 } as const;
