@@ -6,9 +6,13 @@ mod types;
 
 use crate::{
     VERSION,
-    server::{api::v1::types::HealthResponse, utils::Service},
+    scanner::scan_ports,
+    server::{
+        api::v1::types::{HealthResponse, PortResponse},
+        utils::Service,
+    },
 };
-use axum::{Json, Router, http::StatusCode, response::IntoResponse, routing::get};
+use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::get};
 use chrono::Local;
 use log::debug;
 use std::sync::Arc;
@@ -17,13 +21,32 @@ use utoipa::OpenApi;
 #[derive(OpenApi)]
 #[openapi(
     info(title = "PortKeep API", version = "1.0.0"),
-    paths(health),
-    components(schemas(HealthResponse))
+    paths(all_ports, health),
+    components(schemas(HealthResponse, PortResponse))
 )]
 pub struct ApiDocV1;
 
 pub fn routes() -> Router<Arc<Service>> {
-    Router::new().route("/health", get(health))
+    Router::new()
+        .route("/health", get(health))
+        .route("/ports", get(all_ports))
+}
+
+/// Get all ports
+#[utoipa::path(get, path = "/api/v1/ports", responses(
+    (status = 200, description = "List of ports", body = Vec<PortResponse>),
+))]
+pub async fn all_ports(State(service): State<Arc<Service>>) -> impl IntoResponse {
+    debug!("getting all ports");
+
+    let lock = service.config.read();
+    let registered = &lock.ports;
+    let ports: Vec<PortResponse> = scan_ports(registered)
+        .into_iter()
+        .map(std::convert::Into::into)
+        .collect();
+
+    (StatusCode::OK, Json(ports)).into_response()
 }
 
 /// Health check

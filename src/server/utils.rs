@@ -19,7 +19,6 @@ pub struct Service {
 pub struct ServerArgs {
     pub host: String,
     pub port: u16,
-    pub debug: bool,
 }
 
 /// Initialize the logger

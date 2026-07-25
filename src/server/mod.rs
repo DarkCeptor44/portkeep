@@ -33,7 +33,7 @@ pub async fn handle_server(args: App, config: Data) -> Result<()> {
     info!(
         "\n===================================================\n------------------ PortKeep v{VERSION} ------------------\n===================================================\n",
     );
-    let server_args = ServerArgs { host, port, debug };
+    let server_args = ServerArgs { host, port };
     if let Err(e) = serve(config, server_args).await {
         error!("{NAME} application logic: {e:?}");
         exit(1);
