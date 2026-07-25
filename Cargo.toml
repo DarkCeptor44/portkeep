@@ -14,12 +14,28 @@ include = ["assets/**/*", "src/**/*", "Cargo.toml", "LICENSE", "README.md"]
 
 [dependencies]
 anyhow = "1.0.104"
+axum = { version = "0.8.9", features = ["http2"] }
+chrono = "0.4.45"
 clap = { version = "4.6.4", features = ["derive", "env"] }
 configura = "1.1.0"
+dotenvy = "0.15.7"
 inquire = "0.9.4"
+log = "0.4.33"
+parking_lot = "0.12.5"
 serde = { version = "1.0.229", features = ["derive"] }
+simplelog = "0.12.2"
 tabela = "0.2.0"
 thiserror = "2.0.19"
+time = "0.3.47" # only needed to avoid vulnerability
+tokio = { version = "1.53.1", features = [
+    "macros",
+    "rt-multi-thread",
+    "signal",
+] }
+tower = "0.5.3"
+tower-http = { version = "0.7.0", features = ["fs"] }
+utoipa = { version = "5.5.0", features = ["axum_extras"] }
+utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
 
 [profile.release]
 strip = true

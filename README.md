@@ -1,10 +1,8 @@
 # PortKeep
 
-PortKeep is a tool to keep track of your local ports.
+PortKeep is a tool to keep track of your local ports. It can be used as a CLI or run as a web server.
 
 ## Getting Started
-
-PortKeep is a command line tool that can be used to add, list, and remove ports from a configuration file. It allows keeping track of all open ports.
 
 ### From Source
 
@@ -35,6 +33,8 @@ PortKeep is a command line tool that can be used to add, list, and remove ports 
 5. Check the [Usage](#usage) section to know how to use the tool.
 
 ## Usage
+
+### CLI
 
 ```bash
 $ portkeep -h
@@ -72,6 +72,40 @@ portkeep remove 22            # Asks for confirmation before removing
 portkeep remove 22 --confirm  # Removes the port without asking for confirmation
 ```
 
+### Server
+
+You can run the server with the following command:
+
+```bash
+$ portkeep serve
+2026-07-24T21:37:53.3311672-03:00 [INFO] 
+===================================================
+------------------ PortKeep v0.1.0 ------------------
+===================================================
+
+2026-07-24T21:37:53.3342596-03:00 [INFO] 
+    listening on http://0.0.0.0:7678
+    listening on http://localhost:7678
+```
+
+Once the server is running, open your browser and go to <http://localhost:7678>, or whatever it says in the logs. You can change the host and port with the CLI flags:
+
+```bash
+$ portkeep serve -h
+Serve portkeep
+
+Usage: portkeep serve [OPTIONS]
+
+Options:
+  -H, --host <HOST>  Host to listen on [env: PORTKEEP_HOST=] [default: 0.0.0.0]
+  -p, --port <PORT>  Port to listen on [env: PORTKEEP_PORT=] [default: 7678]
+      --debug        Enable debug logging [env: PORTKEEP_DEBUG=]
+  -h, --help         Print help
+  -V, --version      Print version
+```
+
+There are also environment variables, see [Environment Variables](#environment-variables).
+
 ## MSRV
 
 The minimum supported Rust version is:
@@ -87,6 +121,8 @@ The following environment variables are currently supported, they are used if th
 | Variable | Default | Description |
 | --- | --- | --- |
 | `PORTKEEP_DEBUG` | `false` | Enable debug logging |
+| `PORTKEEP_HOST` | `0.0.0.0` | Host to listen on |
+| `PORTKEEP_PORT` | `7678` | Port to listen on |
 
 ## Audits
 

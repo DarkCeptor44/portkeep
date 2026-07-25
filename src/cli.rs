@@ -41,7 +41,7 @@ pub fn handle_cli(args: App, config: &mut Data) -> Result<()> {
         AppArgs::Remove { port, confirm } => {
             remove_port(config, port, confirm).context("Failed to remove port")?;
         }
-        AppArgs::Serve => unreachable!("Serve command must be run at the root"),
+        AppArgs::Serve { .. } => unreachable!("Serve command must be run at the root"),
     }
 
     Ok(())

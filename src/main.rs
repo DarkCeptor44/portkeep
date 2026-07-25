@@ -7,12 +7,14 @@
 
 mod cli;
 mod config;
+mod server;
 mod utils;
 
-use crate::{cli::handle_cli, config::Data};
+use crate::{cli::handle_cli, config::Data, server::handle_server};
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use configura::load_config;
+use dotenvy::dotenv;
 use std::process::exit;
 
 pub const NAME: &str = env!("CARGO_BIN_NAME");
@@ -55,23 +57,52 @@ enum AppArgs {
     },
 
     #[command(about = "Serve portkeep")]
-    Serve,
+    Serve {
+        #[arg(
+            short = 'H',
+            long,
+            help = "Host to listen on",
+            env = "PORTKEEP_HOST",
+            default_value = "0.0.0.0"
+        )]
+        host: String,
+
+        #[arg(
+            short,
+            long,
+            help = "Port to listen on",
+            env = "PORTKEEP_PORT",
+            default_value_t = 7678
+        )]
+        port: u16,
+
+        #[arg(
+            long,
+            help = "Enable debug logging",
+            env = "PORTKEEP_DEBUG",
+            default_value_t
+        )]
+        debug: bool,
+    },
 }
 
-fn main() {
-    if let Err(e) = main_impl() {
+#[tokio::main]
+async fn main() {
+    dotenv().ok();
+
+    if let Err(e) = main_impl().await {
         eprintln!("{NAME}: {e:?}");
         exit(1);
     }
 }
 
-fn main_impl() -> Result<()> {
+async fn main_impl() -> Result<()> {
     let args = App::parse();
     let mut config: Data = load_config().context("Failed to load config file")?;
 
     #[allow(clippy::match_wildcard_for_single_variants)]
     match args.command {
-        AppArgs::Serve => todo!(),
+        AppArgs::Serve { .. } => handle_server(args, config).await?,
         _ => handle_cli(args, &mut config)?,
     }
 
