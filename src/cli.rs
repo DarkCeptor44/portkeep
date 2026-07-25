@@ -4,13 +4,14 @@
 
 use crate::{
     App, AppArgs,
-    config::{Data, error::Error},
+    config::{Data, PortDetailResponse, error::Error},
+    scanner::scan_ports,
     utils::{InquireExt, validate_port, validate_text},
 };
 use anyhow::{Context, Result};
 use inquire::{Confirm, CustomType, Select, Text};
 use std::fmt::Display;
-use tabela::{Alignment, Cell, CellStyle, Row, Table};
+use tabela::{CellStyle, Table};
 
 #[derive(Debug)]
 struct PortEntry {
@@ -84,23 +85,22 @@ fn list_ports(config: &Data, reverse: bool) -> Result<()> {
         return Ok(());
     }
 
-    let mut ports: Vec<PortEntry> = config
-        .ports
-        .iter()
-        .map(|(k, v)| PortEntry {
-            port: *k,
-            description: v.clone(),
-        })
-        .collect();
+    let registered = &config.ports;
+    let mut ports = scan_ports(registered);
 
     if reverse {
         ports.reverse();
     }
 
     // tabela needs &[&[T]]
-    let ports_ref: Vec<&PortEntry> = ports.iter().collect();
-    let table = Table::new(&ports_ref)
-        .with_header(&["Port", "Description"], None, Some(CellStyle::Bold), None)
+    let ports_ref: Vec<&PortDetailResponse> = ports.iter().collect();
+    let table: Table<'_, PortDetailResponse> = Table::new(&ports_ref)
+        .with_header(
+            &["Port", "Description", "Listening", "PID", "Process Name"],
+            None,
+            Some(CellStyle::Bold),
+            None,
+        )
         .with_separator("  ");
 
     println!("{}", table.format().context("Failed to format port list")?);
@@ -195,13 +195,4 @@ fn prompt_port(
         port,
         description: desc,
     }))
-}
-
-impl Row for &PortEntry {
-    fn as_row(&self) -> Vec<Cell> {
-        vec![
-            Cell::new(self.port).with_alignment(Alignment::Center),
-            Cell::new(&self.description),
-        ]
-    }
 }

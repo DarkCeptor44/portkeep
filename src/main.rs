@@ -7,6 +7,7 @@
 
 mod cli;
 mod config;
+mod scanner;
 mod server;
 mod utils;
 

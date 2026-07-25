@@ -22,10 +22,12 @@ dotenvy = "0.15.7"
 inquire = "0.9.4"
 log = "0.4.33"
 mime_guess = "2.0.5"
+netstat2 = "0.11.2"
 parking_lot = "0.12.5"
 rust-embed = "8.12.0"
 serde = { version = "1.0.229", features = ["derive"] }
 simplelog = "0.12.2"
+sysinfo = "0.39.6"
 tabela = "0.2.0"
 thiserror = "2.0.19"
 time = "0.3.47" # only needed to avoid vulnerability

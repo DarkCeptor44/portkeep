@@ -8,6 +8,7 @@ use crate::config::error::Error;
 use configura::{Config, formats::JsonFormat};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use tabela::{Alignment, Cell, Color, Row};
 
 type Result<T> = std::result::Result<T, Error>;
 
@@ -85,4 +86,40 @@ impl Data {
 
         Ok(())
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PortDetailResponse {
+    pub port: u16,
+    pub description: Option<String>,
+    pub status: PortStatus,
+}
+
+impl Row for &PortDetailResponse {
+    fn as_row(&self) -> Vec<Cell> {
+        vec![
+            Cell::new(self.port)
+                .with_alignment(Alignment::Center)
+                .with_color(Color::Cyan),
+            Cell::new(self.description.as_deref().unwrap_or("")),
+            Cell::new(self.status.is_listening)
+                .with_alignment(Alignment::Center)
+                .with_color(if self.status.is_listening {
+                    Color::Green
+                } else {
+                    Color::Red
+                }),
+            Cell::new(self.status.pid.map_or(-1, i64::from))
+                .with_alignment(Alignment::Center)
+                .with_color(Color::Cyan),
+            Cell::new(self.status.process_name.as_deref().unwrap_or("")),
+        ]
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PortStatus {
+    pub is_listening: bool,
+    pub pid: Option<u32>,
+    pub process_name: Option<String>,
 }
