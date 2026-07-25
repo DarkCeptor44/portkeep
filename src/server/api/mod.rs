@@ -5,10 +5,19 @@
 mod v1;
 
 use crate::server::{api::v1::ApiDocV1, utils::Service};
-use axum::{Router, response::Html};
+use axum::{
+    Router,
+    body::Body,
+    http::{Response, StatusCode, Uri, header},
+    response::IntoResponse,
+};
 use std::sync::Arc;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
+
+#[derive(rust_embed::RustEmbed)]
+#[folder = "dist"]
+struct Assets;
 
 pub fn routes(_service: &Service) -> Router<Arc<Service>> {
     let r = Router::new().nest("/api/v1", v1::routes()).merge(
@@ -17,13 +26,40 @@ pub fn routes(_service: &Service) -> Router<Arc<Service>> {
 
     if cfg!(debug_assertions) {
         use std::path::PathBuf;
-        use tower_http::services::ServeFile;
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("assets")
-            .join("index.html");
+        use tower_http::services::{ServeDir, ServeFile};
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("dist");
+        let index_path = path.join("index.html");
+        let serve_dir = ServeDir::new(path).not_found_service(ServeFile::new(index_path));
 
-        r.fallback_service(ServeFile::new(path))
+        r.fallback_service(serve_dir)
     } else {
-        r.fallback(|| async { Html(include_str!("../../../assets/index.html")) })
+        r.fallback(static_asset_handler)
     }
+}
+
+async fn static_asset_handler(uri: Uri) -> impl IntoResponse {
+    let path = uri.path().trim_start_matches('/');
+
+    if let Some(file) = Assets::get(path) {
+        let mime_type = mime_guess::from_path(path).first_or_octet_stream();
+
+        return Response::builder()
+            .status(StatusCode::OK)
+            .header(header::CONTENT_TYPE, mime_type.as_ref())
+            .body(Body::from(file.data))
+            .unwrap();
+    }
+
+    if let Some(index) = Assets::get("index.html") {
+        return Response::builder()
+            .status(StatusCode::OK)
+            .header(header::CONTENT_TYPE, "text/html")
+            .body(Body::from(index.data))
+            .unwrap();
+    }
+
+    Response::builder()
+        .status(StatusCode::NOT_FOUND)
+        .body(Body::from("Build directory missing or empty"))
+        .unwrap()
 }
