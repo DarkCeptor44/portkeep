@@ -2,8 +2,9 @@
 	import type { Port } from "$lib/types";
 	import { appState } from "$lib/api.svelte";
 	import { onMount } from "svelte";
-	import { slide } from "svelte/transition";
 	import { t } from "$lib/i18n/index.svelte";
+
+	import DataList from "$lib/components/DataList.svelte";
 
 	let port = $state("");
 	let description = $state("");
@@ -74,143 +75,104 @@
 </section>
 
 <!-- ports list -->
-<section>
-	<div
-		class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-	>
-		<h2 class="text-lg font-semibold text-slate-200">{t("list.title")}</h2>
-
-		<!-- search -->
-		<div class="relative w-full sm:w-64">
-			<input
-				type="text"
-				placeholder={t("list.searchPlaceholder")}
-				class="w-full rounded-lg border border-slate-800 bg-slate-900 py-1.5 pl-3 pr-8 text-xs text-slate-200 placeholder-slate-500 focus:border-slate-700 focus:outline-none"
-			/>
-		</div>
-	</div>
-
-	<div
-		class="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 shadow-sm"
-	>
-		{#if appState.loading}
-			<div class="p-6 text-center text-slate-400 text-sm">
-				{t("list.loading")}
+<DataList
+	items={appState.ports}
+	loading={appState.loading}
+	getItemKey={(item) => item.port}
+>
+	{#snippet children(item, {})}
+		<div class="flex items-center gap-4">
+			<!-- port number -->
+			<div
+				class="w-18 font-mono text-xl font-bold {item.is_listening
+					? 'text-indigo-400'
+					: 'text-slate-500'}"
+			>
+				:{item.port}
 			</div>
-		{:else if appState.ports.length === 0}
-			<div class="p-6 text-center text-slate-400 text-sm">
-				{t("list.empty")}
-			</div>
-		{:else}
-			<ul class="divide-y divide-slate-800/60">
-				{#each appState.ports as item (item.port)}
-					<li
-						class="flex items-center justify-between p-4 transition hover:bg-slate-800/30"
-						transition:slide={{ duration: 150 }}
-					>
-						<div class="flex items-center gap-4">
-							<!-- port number -->
-							<div
-								class="w-18 font-mono text-xl font-bold {item.is_listening
-									? 'text-indigo-400'
-									: 'text-slate-500'}"
-							>
-								:{item.port}
-							</div>
 
-							<div>
-								<!-- description -->
-								<div
-									class="text-base font-medium {item.description
-										? 'text-slate-100'
-										: 'text-slate-500'}"
-								>
-									{item.description || t("list.noDesc")}
-								</div>
+			<div>
+				<!-- description -->
+				<div
+					class="text-base font-medium {item.description
+						? 'text-slate-100'
+						: 'text-slate-500'}"
+				>
+					{item.description || t("list.noDesc")}
+				</div>
 
-								<!-- status -->
-								<div
-									class="flex items-center gap-2 text-xs text-slate-400"
-								>
-									<!-- active -->
-									{#if item.is_listening}
-										<span
-											class="inline-flex items-center gap-1.5 text-emerald-400 font-medium"
-										>
-											<span
-												class="h-1.5 w-1.5 rounded-full bg-emerald-400"
-											></span>
-											{t("list.listening")}
-										</span>
-									{:else}
-										<span
-											class="inline-flex items-center gap-1.5 text-slate-500 font-medium"
-										>
-											<span
-												class="h-1.5 w-1.5 rounded-full bg-slate-600"
-											></span>
-											{t("list.inactive")}
-										</span>
-									{/if}
+				<!-- status -->
+				<div class="flex items-center gap-2 text-xs text-slate-400">
+					<!-- active -->
+					{#if item.is_listening}
+						<span
+							class="inline-flex items-center gap-1.5 text-emerald-400 font-medium"
+						>
+							<span
+								class="h-1.5 w-1.5 rounded-full bg-emerald-400"
+							></span>
+							{t("list.listening")}
+						</span>
+					{:else}
+						<span
+							class="inline-flex items-center gap-1.5 text-slate-500 font-medium"
+						>
+							<span class="h-1.5 w-1.5 rounded-full bg-slate-600"
+							></span>
+							{t("list.inactive")}
+						</span>
+					{/if}
 
-									<!-- process info -->
-									{#if item.pid || item.process_name}
-										<span class="text-slate-700 select-none"
-											>•</span
-										>
-										<div
-											class="flex items-center gap-1.5 font-mono"
-										>
-											{#if item.process_name}
-												<span
-													class="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] font-medium text-slate-300 border border-slate-700/50"
-												>
-													{item.process_name}
-												</span>
-											{/if}
-											{#if item.pid}
-												<span
-													class="rounded bg-slate-800/60 px-1.5 py-0.5 text-[11px] text-slate-400 border border-slate-700/30"
-													>PID {item.pid}</span
-												>
-											{/if}
-										</div>
-									{/if}
-								</div>
-							</div>
-						</div>
-
-						<!-- actions -->
-						<div class="flex items-center gap-2">
-							{#if item.description}
-								<button
-									type="button"
-									onclick={() => handleEdit(item)}
-									class="rounded-md border border-slate-700/60 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-700 focus:outline-none cursor-pointer select-none"
+					<!-- process info -->
+					{#if item.pid || item.process_name}
+						<span class="text-slate-700 select-none">•</span>
+						<div class="flex items-center gap-1.5 font-mono">
+							{#if item.process_name}
+								<span
+									class="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] font-medium text-slate-300 border border-slate-700/50"
 								>
-									{t("list.edit")}
-								</button>
-
-								<button
-									type="button"
-									onclick={() => handleDelete(item)}
-									class="rounded-md border border-red-900/40 bg-red-950/30 px-3 py-1.5 text-xs font-medium text-red-400 transition hover:bg-red-900/40 focus:outline-none cursor-pointer select-none"
+									{item.process_name}
+								</span>
+							{/if}
+							{#if item.pid}
+								<span
+									class="rounded bg-slate-800/60 px-1.5 py-0.5 text-[11px] text-slate-400 border border-slate-700/30"
+									>PID {item.pid}</span
 								>
-									{t("list.delete")}
-								</button>
-							{:else}
-								<button
-									type="button"
-									onclick={() => handleAdd(item)}
-									class="rounded-md border border-indigo-500/40 bg-indigo-950/40 px-3 py-1.5 text-xs font-medium text-indigo-300 transition hover:bg-indigo-900/50 focus:outline-none cursor-pointer select-none"
-								>
-									{t("list.add")}
-								</button>
 							{/if}
 						</div>
-					</li>
-				{/each}
-			</ul>
-		{/if}
-	</div>
-</section>
+					{/if}
+				</div>
+			</div>
+		</div>
+
+		<!-- actions -->
+		<div class="flex items-center gap-2">
+			{#if item.description}
+				<button
+					type="button"
+					onclick={() => handleEdit(item)}
+					class="rounded-md border border-slate-700/60 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-700 focus:outline-none cursor-pointer select-none"
+				>
+					{t("list.edit")}
+				</button>
+
+				<button
+					type="button"
+					onclick={() => handleDelete(item)}
+					class="rounded-md border border-red-900/40 bg-red-950/30 px-3 py-1.5 text-xs font-medium text-red-400 transition hover:bg-red-900/40 focus:outline-none cursor-pointer select-none"
+				>
+					{t("list.delete")}
+				</button>
+			{:else}
+				<button
+					type="button"
+					onclick={() => handleAdd(item)}
+					class="rounded-md border border-indigo-500/40 bg-indigo-950/40 px-3 py-1.5 text-xs font-medium text-indigo-300 transition hover:bg-indigo-900/50 focus:outline-none cursor-pointer select-none"
+				>
+					{t("list.add")}
+				</button>
+			{/if}
+		</div>
+	{/snippet}
+</DataList>
