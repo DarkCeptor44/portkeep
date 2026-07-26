@@ -27,3 +27,18 @@ export interface Port {
 	 */
 	process_name: string | null;
 }
+
+/**
+ * Represents a sort option
+ */
+export interface SortOption<T> {
+	/**
+	 * The field to sort by
+	 */
+	id: T;
+
+	/**
+	 * The field label
+	 */
+	label: string;
+}

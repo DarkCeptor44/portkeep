@@ -12,6 +12,7 @@ export const translations = {
 		},
 		list: {
 			add: "Add",
+			clearSearch: "Clear search",
 			delete: "Delete",
 			edit: "Edit",
 			empty: "No ports registered",
@@ -19,8 +20,17 @@ export const translations = {
 			listening: "Listening",
 			loading: "Loading...",
 			noDesc: "Unregistered Port",
+			noSearchResults: "No results found for",
 			searchPlaceholder: "Search ports or descriptions...",
 			title: "Registered Ports",
+		},
+		sort: {
+			description: "Description",
+			isListening: "Listening",
+			pid: "PID",
+			port: "Port",
+			processName: "Process Name",
+			sortBy: "Sort By",
 		},
 		stats: {
 			active: "Active",
@@ -41,6 +51,7 @@ export const translations = {
 		},
 		list: {
 			add: "Adicionar",
+			clearSearch: "Limpar pesquisa",
 			delete: "Deletar",
 			edit: "Editar",
 			empty: "Nenhuma porta registrada",
@@ -48,8 +59,17 @@ export const translations = {
 			listening: "Ouvindo",
 			loading: "Carregando...",
 			noDesc: "Porta Não Registrada",
+			noSearchResults: "Nenhum resultado encontrado para",
 			searchPlaceholder: "Pesquisar portas ou descrições...",
 			title: "Portas Registradas",
+		},
+		sort: {
+			description: "Descrição",
+			isListening: "Ouvindo",
+			pid: "PID",
+			port: "Porta",
+			processName: "Nome do Processo",
+			sortBy: "Ordenar Por",
 		},
 		stats: {
 			active: "Ativo",

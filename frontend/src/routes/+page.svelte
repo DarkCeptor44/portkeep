@@ -1,10 +1,25 @@
 <script lang="ts">
-	import type { Port } from "$lib/types";
+	import type { Port, SortOption } from "$lib/types";
 	import { appState } from "$lib/api.svelte";
 	import { onMount } from "svelte";
 	import { t } from "$lib/i18n/index.svelte";
 
 	import DataList from "$lib/components/DataList.svelte";
+
+	type PortField =
+		| "port"
+		| "description"
+		| "is_listening"
+		| "pid"
+		| "process_name";
+
+	const sortOptions = $derived<SortOption<PortField>[]>([
+		{ id: "port", label: t("sort.port") },
+		{ id: "description", label: t("sort.description") },
+		{ id: "is_listening", label: t("sort.isListening") },
+		{ id: "pid", label: t("sort.pid") },
+		{ id: "process_name", label: t("sort.processName") },
+	]);
 
 	let port = $state("");
 	let description = $state("");
@@ -12,6 +27,25 @@
 	onMount(() => {
 		appState.fetchPorts();
 	});
+
+	function comparePorts(a: Port, b: Port, sortBy: PortField): number {
+		switch (sortBy) {
+			case "port":
+				return a.port - b.port;
+			case "description":
+				return (a.description ?? "").localeCompare(b.description ?? "");
+			case "is_listening":
+				return (a.is_listening ? 1 : 0) - (b.is_listening ? 1 : 0);
+			case "pid":
+				return (a.pid ?? -1) - (b.pid ?? -1);
+			case "process_name":
+				return (a.process_name ?? "").localeCompare(
+					b.process_name ?? "",
+				);
+			default:
+				return 0;
+		}
+	}
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -79,6 +113,14 @@
 	items={appState.ports}
 	loading={appState.loading}
 	getItemKey={(item) => item.port}
+	{sortOptions}
+	defaultSortBy="port"
+	defaultReverse={false}
+	sortComparator={comparePorts}
+	fuseOptions={{
+		keys: ["port", "description", "is_listening", "pid", "process_name"],
+		threshold: 0.3,
+	}}
 >
 	{#snippet children(item, {})}
 		<div class="flex items-center gap-4">
