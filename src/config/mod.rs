@@ -61,6 +61,38 @@ impl Data {
         Ok(())
     }
 
+    /// Edit a port in the config file
+    ///
+    /// ## Arguments
+    ///
+    /// * `port` - The port number to edit (1-65535)
+    /// * `description` - The new description of the port
+    ///
+    /// ## Errors
+    ///
+    /// * [`Error::InvalidPort`] - If the port is invalid (is 0)
+    /// * [`Error::EmptyDescription`] - If the description is empty
+    /// * [`Error::PortDoesNotExist`] - If the port does not exist
+    /// * [`Error::ConfigError`] - If there is an error with saving the config file
+    pub fn edit_port(&mut self, port: u16, description: String) -> Result<()> {
+        if port == 0 {
+            return Err(Error::InvalidPort(port));
+        }
+
+        if description.trim().is_empty() {
+            return Err(Error::EmptyDescription);
+        }
+
+        if !self.ports.contains_key(&port) {
+            return Err(Error::PortDoesNotExist(port));
+        }
+
+        self.ports.insert(port, description);
+        self.save()?;
+
+        Ok(())
+    }
+
     /// Remove a port from the config file
     ///
     /// ## Arguments

@@ -6,13 +6,29 @@ export const translations = {
 	en: {
 		meta: { label: "English" },
 		common: {
+			adding: "Adding...",
+			cancel: "Cancel",
+			delete: "Delete",
+			deleting: "Deleting...",
+			deleteConfirmation: "Confirm deletion",
+			deleteConfirmationText1: "Are you sure you want to delete",
+			deleteConfirmationText2: "? This action cannot be undone.",
+			dismiss: "Dismiss",
+			save: "Save Changes",
+			saving: "Saving...",
 			title: "PortKeep",
+		},
+		error: {
+			addPort: "Failed to add port",
+			deletePort: "Failed to delete port",
+			editPort: "Failed to edit port",
 		},
 		form: {
 			buttonAdd: "Add Port",
 			descPlaceholder: "Description (e.g. Web API Server)",
 			portPlaceholder: "Port (8080)",
-			title: "Register New Port",
+			titleAdd: "Register New Port",
+			titleEdit: "Edit Port",
 		},
 		list: {
 			add: "Add",
@@ -40,18 +56,39 @@ export const translations = {
 			active: "Active",
 			allocated: "Registered",
 		},
+		success: {
+			addPort: "Port {port} was added successfully",
+			deletePort: "Port {port} deleted successfully",
+			editPort: "Port {port} was updated successfully",
+		},
 	},
 
 	"pt-BR": {
 		meta: { label: "Português" },
 		common: {
+			adding: "Adicionando...",
+			cancel: "Cancelar",
+			delete: "Excluir",
+			deleting: "Excluindo...",
+			deleteConfirmation: "Confirmar exclusão",
+			deleteConfirmationText1: "Tem certeza que deseja excluir",
+			deleteConfirmationText2: "? Esta ação não pode ser desfeita.",
+			dismiss: "Descartar",
+			save: "Salvar Alterações",
+			saving: "Salvando...",
 			title: "PortKeep",
+		},
+		error: {
+			addPort: "Falha ao adicionar porta",
+			deletePort: "Falha ao excluir porta",
+			editPort: "Falha ao editar porta",
 		},
 		form: {
 			buttonAdd: "Adicionar Porta",
 			descPlaceholder: "Descrição (e.g. Servidor Web API)",
 			portPlaceholder: "Porta (8080)",
-			title: "Registrar Nova Porta",
+			titleAdd: "Registrar Nova Porta",
+			titleEdit: "Editar Porta",
 		},
 		list: {
 			add: "Adicionar",
@@ -78,6 +115,11 @@ export const translations = {
 		stats: {
 			active: "Ativo",
 			allocated: "Registrado",
+		},
+		success: {
+			addPort: "Porta {port} adicionada com sucesso",
+			deletePort: "Porta {port} excluída com sucesso",
+			editPort: "Porta {port} atualizada com sucesso",
 		},
 	},
 } as const;

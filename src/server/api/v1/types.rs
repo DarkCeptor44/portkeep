@@ -3,8 +3,17 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::config::PortDetailResponse;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+
+#[derive(Deserialize, ToSchema, Debug)]
+pub struct AddPortRequest {
+    /// Port number
+    pub port: u16,
+
+    /// Port description
+    pub description: String,
+}
 
 #[derive(Serialize, ToSchema)]
 pub struct HealthResponse<'a> {

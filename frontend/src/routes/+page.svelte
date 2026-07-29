@@ -8,9 +8,11 @@
 	import type { Port, SortOption } from "$lib/types";
 	import { appState } from "$lib/api.svelte";
 	import { onMount } from "svelte";
+	import { toast } from "$lib/toast.svelte";
 	import { t } from "$lib/i18n/index.svelte";
 
 	import DataList from "$lib/components/DataList.svelte";
+	import PortForm from "$lib/components/PortForm.svelte";
 
 	type PortField =
 		| "port"
@@ -27,8 +29,13 @@
 		{ id: "process_name", label: t("sort.processName") },
 	]);
 
-	let port = $state("");
-	let description = $state("");
+	let deleteTarget = $state<Port | null>(null);
+	let isDeleting = $state(false);
+	let submitting = $state(false);
+	let editingPort = $state<{
+		port: number;
+		description?: string | null;
+	} | null>(null);
 
 	onMount(() => {
 		appState.fetchPorts();
@@ -53,66 +60,75 @@
 		}
 	}
 
-	function handleSubmit(e: Event) {
-		e.preventDefault();
-	}
-
 	function handleAdd(item: Port) {
-		return;
-	}
-
-	function handleDelete(item: Port) {
-		return;
+		editingPort = { port: item.port };
 	}
 
 	function handleEdit(item: Port) {
-		return;
+		editingPort = { port: item.port, description: item.description };
+	}
+
+	async function handleSave(payload: { port: number; description: string }) {
+		submitting = true;
+
+		const isEdit = !!editingPort?.description;
+
+		try {
+			if (isEdit) {
+				await appState.editPort(payload.port, payload.description);
+			} else {
+				await appState.addPort(payload.port, payload.description);
+			}
+
+			toast.show(
+				t(isEdit ? "success.editPort" : "success.addPort", {
+					port: payload.port.toString(),
+				}),
+			);
+			editingPort = null;
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : "An error occurred";
+			console.error(message);
+			toast.show(message, "error");
+		} finally {
+			submitting = false;
+		}
+	}
+
+	function handleDelete(item: Port) {
+		deleteTarget = item;
+	}
+
+	async function handleConfirmDelete() {
+		if (!deleteTarget) return;
+		isDeleting = true;
+
+		try {
+			await appState.deletePort(deleteTarget.port);
+
+			toast.show(
+				t("success.deletePort", { port: deleteTarget.port.toString() }),
+			);
+			deleteTarget = null;
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : "An error occurred";
+			console.error(message);
+			toast.show(message, "error");
+		} finally {
+			isDeleting = false;
+		}
 	}
 </script>
 
 <!-- creation form -->
-<section class="mb-8">
-	<form
-		onsubmit={handleSubmit}
-		class="rounded-xl border border-slate-800 bg-slate-800/40 p-4 shadow-sm backdrop-blur"
-	>
-		<div
-			class="mb-3 text-xs font-medium uppercase tracking-wider text-slate-400"
-		>
-			{t("form.title")}
-		</div>
-		<div class="flex flex-col gap-3 sm:flex-row">
-			<div class="w-full sm:w-36">
-				<input
-					type="number"
-					bind:value={port}
-					placeholder={t("form.portPlaceholder")}
-					min="1"
-					max="65535"
-					class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2 text-sm text-slate-100 placeholder-slate-500 transition focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-					required
-				/>
-			</div>
-
-			<div class="flex-1">
-				<input
-					type="text"
-					bind:value={description}
-					placeholder={t("form.descPlaceholder")}
-					class="w-full rounded-lg border border-slate-700 bg-slate-900 px-3.5 py-2 text-sm text-slate-100 placeholder-slate-500 transition focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-					required
-				/>
-			</div>
-
-			<button
-				type="submit"
-				class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900 active:bg-indigo-700 cursor-pointer"
-			>
-				{t("form.buttonAdd")}
-			</button>
-		</div>
-	</form>
-</section>
+<PortForm
+	initialData={editingPort}
+	{submitting}
+	onSubmit={handleSave}
+	onCancel={() => (editingPort = null)}
+/>
 
 <!-- ports list -->
 <DataList
@@ -224,3 +240,61 @@
 		</div>
 	{/snippet}
 </DataList>
+
+{#if deleteTarget}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+		onclick={() => !isDeleting && (deleteTarget = null)}
+		role="presentation"
+	>
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<div
+			class="rounded-xl border border-slate-800 bg-slate-900 p-6 max-w-sm w-full space-y-4 shadow-xl outline-none"
+			onclick={(e) => e.stopPropagation()}
+			role="dialog"
+			aria-modal="true"
+			tabindex="-1"
+		>
+			<div class="space-y-2">
+				<h3 class="text-base font-semibold text-slate-100">
+					{t("common.deleteConfirmation")}
+				</h3>
+				<p class="text-sm text-slate-400">
+					{t("common.deleteConfirmationText1")}
+					<span class="font-mono font-medium text-indigo-400"
+						>:{deleteTarget.port}</span
+					>
+					{#if deleteTarget.description}
+						<span class="text-slate-300">
+							({deleteTarget.description})</span
+						>
+					{/if}
+					{t("common.deleteConfirmationText2")}
+				</p>
+			</div>
+
+			<div class="flex items-center justify-end gap-3 pt-2">
+				<button
+					type="button"
+					disabled={isDeleting}
+					onclick={() => (deleteTarget = null)}
+					class="rounded-lg border border-slate-700/60 bg-slate-800 px-3.5 py-2 text-xs font-medium text-slate-300 transition hover:bg-slate-700 focus:outline-none disabled:opacity-50 cursor-pointer"
+				>
+					{t("common.cancel")}
+				</button>
+				<button
+					type="button"
+					disabled={isDeleting}
+					onclick={handleConfirmDelete}
+					class="rounded-lg border border-red-900/50 bg-red-950/60 px-3.5 py-2 text-xs font-medium text-red-300 transition hover:bg-red-900/80 focus:outline-none disabled:opacity-50 cursor-pointer flex items-center gap-2"
+				>
+					{#if isDeleting}
+						{t("common.deleting")}
+					{:else}
+						{t("common.delete")}
+					{/if}
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
