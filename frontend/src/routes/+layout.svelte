@@ -11,6 +11,7 @@
 	import { t } from "$lib/i18n/index.svelte";
 
 	import LangPicker from "$lib/components/LangPicker.svelte";
+	import ToastProvider from "$lib/components/ToastProvider.svelte";
 
 	onMount(() => {
 		if (import.meta.env.DEV) {
@@ -76,6 +77,8 @@
 			</div>
 		</div>
 	</header>
+
+	<ToastProvider />
 
 	<!-- main -->
 	<main class="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
