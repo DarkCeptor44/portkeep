@@ -123,6 +123,7 @@ pub async fn delete_port(
 /// Edit a port
 #[utoipa::path(put, path = "/api/v1/port", request_body(content = AddPortRequest, description = "The port object"), responses(
     (status = 200, description = "Successfully added port", body = String, example = "ok"),
+    (status = 204, description = "No changes were made", body = String, example = "no changes"),
     (status = 400, description = "Port is invalid or description is empty", body = String, example = "Invalid port"),
     (status = 500, description = "Internal server error", body = String, example = "Internal server error"),
 ))]
@@ -136,6 +137,12 @@ pub async fn edit_port(
         Ok(p) => p,
         Err(e) => return (StatusCode::BAD_REQUEST, e).into_response(),
     };
+
+    if let Some(current_desc) = service.config.read().ports.get(&port) {
+        if current_desc.eq_ignore_ascii_case(&desc) {
+            return (StatusCode::NO_CONTENT, "no changes".to_string()).into_response();
+        }
+    }
 
     match service.config.write().edit_port(port, desc) {
         Ok(()) => (StatusCode::OK, "ok".to_string()).into_response(),
