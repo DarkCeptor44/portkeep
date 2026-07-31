@@ -68,6 +68,11 @@ async fn serve(config: Data, args: ServerArgs) -> Result<()> {
 
         #[cfg(unix)]
         {
+            let ctrl_c = async {
+                tokio::signal::ctrl_c()
+                    .await
+                    .expect("failed to install SIGINT handler");
+            };
             let mut terminate =
                 tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
                     .expect("Failed to install signal handler");
