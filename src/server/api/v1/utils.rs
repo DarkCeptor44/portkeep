@@ -1,4 +1,4 @@
-use crate::server::api::v1::types::AddPortRequest;
+use crate::server::api::v1::types::PortRequest;
 
 /// Validate a port request
 ///
@@ -13,7 +13,7 @@ use crate::server::api::v1::types::AddPortRequest;
 /// ## Errors
 ///
 /// * `String` - If the port is invalid or the description is empty
-pub fn validate_port(payload: AddPortRequest) -> Result<(u16, String), String> {
+pub fn validate_port(payload: PortRequest) -> Result<(u16, String), String> {
     if payload.port == 0 {
         return Err("Invalid port".to_string());
     }

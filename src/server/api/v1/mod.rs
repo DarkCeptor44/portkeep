@@ -10,7 +10,7 @@ use crate::{
     scanner::scan_ports,
     server::{
         api::v1::{
-            types::{AddPortRequest, HealthResponse, PortResponse},
+            types::{HealthResponse, PortRequest, PortResponse},
             utils::validate_port,
         },
         utils::Service,
@@ -33,7 +33,7 @@ use utoipa::OpenApi;
 #[openapi(
     info(title = "PortKeep API", version = "1.0.0"),
     paths(add_port, all_ports, delete_port, edit_port, health),
-    components(schemas(AddPortRequest, HealthResponse, PortResponse))
+    components(schemas(HealthResponse, PortRequest, PortResponse))
 )]
 pub struct ApiDocV1;
 
@@ -47,7 +47,7 @@ pub fn routes() -> Router<Arc<Service>> {
 }
 
 /// Add a new port
-#[utoipa::path(post, path = "/api/v1/port", request_body(content = AddPortRequest, description = "The port object"), responses(
+#[utoipa::path(post, path = "/api/v1/port", request_body(content = PortRequest, description = "The port object"), responses(
     (status = 200, description = "Successfully added port", body = String, example = "ok"),
     (status = 400, description = "Port is invalid or description is empty", body = String, example = "Invalid port"),
     (status = 409, description = "Port already exists", body = String, example = "port already exists"),
@@ -55,7 +55,7 @@ pub fn routes() -> Router<Arc<Service>> {
 ))]
 pub async fn add_port(
     State(service): State<Arc<Service>>,
-    Json(payload): Json<AddPortRequest>,
+    Json(payload): Json<PortRequest>,
 ) -> impl IntoResponse {
     debug!("adding port={payload:?}");
 
@@ -121,7 +121,7 @@ pub async fn delete_port(
 }
 
 /// Edit a port
-#[utoipa::path(put, path = "/api/v1/port", request_body(content = AddPortRequest, description = "The port object"), responses(
+#[utoipa::path(put, path = "/api/v1/port", request_body(content = PortRequest, description = "The port object"), responses(
     (status = 200, description = "Successfully added port", body = String, example = "ok"),
     (status = 204, description = "No changes were made", body = String, example = "no changes"),
     (status = 400, description = "Port is invalid or description is empty", body = String, example = "Invalid port"),
@@ -129,7 +129,7 @@ pub async fn delete_port(
 ))]
 pub async fn edit_port(
     State(service): State<Arc<Service>>,
-    Json(payload): Json<AddPortRequest>,
+    Json(payload): Json<PortRequest>,
 ) -> impl IntoResponse {
     debug!("editing port={payload:?}");
 

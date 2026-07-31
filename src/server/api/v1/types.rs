@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 #[derive(Deserialize, ToSchema, Debug)]
-pub struct AddPortRequest {
+pub struct PortRequest {
     /// Port number
     pub port: u16,
 
