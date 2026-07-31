@@ -26,7 +26,18 @@ class AppState {
 			throw new Error(message || t("error.addPort"));
 		}
 
-		this.fetchPorts();
+		const existingIndex = this.ports.findIndex((p) => p.port === port);
+		if (existingIndex !== -1) {
+			this.ports[existingIndex].description = description;
+		} else {
+			this.ports.push({
+				port,
+				description,
+				is_listening: false,
+				pid: null,
+				process_name: null,
+			});
+		}
 	}
 
 	async deletePort(port: number) {
@@ -39,7 +50,7 @@ class AppState {
 			throw new Error(message || t("error.deletePort"));
 		}
 
-		this.fetchPorts();
+		this.ports = this.ports.filter((p) => p.port !== port);
 	}
 
 	async editPort(port: number, description: string) {
@@ -59,7 +70,10 @@ class AppState {
 			throw new Error(message || t("error.editPort"));
 		}
 
-		this.fetchPorts();
+		const item = this.ports.find((p) => p.port === port);
+		if (item) {
+			item.description = description;
+		}
 	}
 
 	async fetchPorts() {
