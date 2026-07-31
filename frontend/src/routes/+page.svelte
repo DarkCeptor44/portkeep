@@ -143,6 +143,11 @@
 		keys: ["port", "description", "is_listening", "pid", "process_name"],
 		threshold: 0.3,
 	}}
+	filterPredicate={(item, mode) => {
+		if (mode === "registered") return Boolean(item.description);
+		if (mode === "unregistered") return !item.description;
+		return true;
+	}}
 >
 	{#snippet children(item, {})}
 		<div class="flex items-center gap-4">

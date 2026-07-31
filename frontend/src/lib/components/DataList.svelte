@@ -7,6 +7,8 @@
 
 	import SortControls from "./SortControls.svelte";
 
+	type FilterMode = "all" | "registered" | "unregistered";
+
 	interface Props<TData, TSort extends string = string> {
 		items: TData[];
 		loading: boolean;
@@ -20,6 +22,9 @@
 		// search options
 		fuseOptions?: IFuseOptions<TData>;
 
+		// filter options
+		filterPredicate?: (item: TData, mode: FilterMode) => boolean;
+
 		children: Snippet<[TData, {}]>;
 		getItemKey: (item: TData) => string | number;
 	}
@@ -32,6 +37,7 @@
 		defaultReverse = false,
 		sortComparator,
 		fuseOptions,
+		filterPredicate,
 		children,
 		getItemKey,
 	}: Props<TData, TSort> = $props();
@@ -40,6 +46,7 @@
 	let debouncedQuery = $state("");
 	let activeSortBy = $state<TSort | undefined>(undefined);
 	let reverse = $state(false);
+	let activeFilter = $state<FilterMode>("registered");
 	let searchInputEl = $state<HTMLInputElement | null>(null);
 
 	$effect(() => {
@@ -53,19 +60,25 @@
 		return () => clearTimeout(timer);
 	});
 
-	let fuse = $derived(fuseOptions ? new Fuse(items, fuseOptions) : null);
-	let filteredItems = $derived.by(() => {
+	let baseFilteredItems = $derived.by(() => {
+		if (!filterPredicate || activeFilter === "all") return items;
+		return items.filter((item) => filterPredicate(item, activeFilter));
+	});
+	let fuse = $derived(
+		fuseOptions ? new Fuse(baseFilteredItems, fuseOptions) : null,
+	);
+	let searchFilteredItems = $derived.by(() => {
 		const query = debouncedQuery.trim();
-		if (!fuse || !query) return items;
+		if (!fuse || !query) return baseFilteredItems;
 		return fuse.search(query).map((res) => res.item);
 	});
 	let processedItems = $derived.by(() => {
 		if (!sortOptions || !activeSortBy || !sortComparator) {
-			return filteredItems;
+			return searchFilteredItems;
 		}
 
 		const currentSort = activeSortBy;
-		const list = [...filteredItems];
+		const list = [...searchFilteredItems];
 		list.sort((a, b) => sortComparator(a, b, currentSort));
 		if (reverse) list.reverse();
 		return list;
@@ -120,26 +133,66 @@
 	>
 		<h2 class="text-lg font-semibold text-slate-200">{t("list.title")}</h2>
 
-		<!-- search -->
-		{#if fuseOptions}
-			<div class="relative w-full sm:w-64">
-				<input
-					type="text"
-					placeholder={t("list.searchPlaceholder")}
-					bind:value={searchQuery}
-					bind:this={searchInputEl}
-					class="w-full rounded-lg border border-slate-800 bg-slate-900 py-1.5 pl-3 pr-8 text-xs text-slate-200 placeholder-slate-500 focus:border-slate-700 focus:outline-none transition"
-				/>
-				{#if searchQuery}
+		<div class="flex flex-wrap items-center gap-3">
+			<!-- filters -->
+			{#if filterPredicate}
+				<div
+					class="inline-flex rounded-lg border border-slate-800 bg-slate-900/80 p-0.5 text-xs font-medium"
+				>
 					<button
-						onclick={() => (searchQuery = "")}
-						class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs px-1 cursor-pointer"
+						type="button"
+						onclick={() => (activeFilter = "all")}
+						class="rounded-md px-2.5 py-1 transition cursor-pointer select-none {activeFilter ===
+						'all'
+							? 'bg-slate-800 text-slate-100 shadow-sm'
+							: 'text-slate-400 hover:text-slate-200'}"
 					>
-						✕
+						{t("list.filterAll")}
 					</button>
-				{/if}
-			</div>
-		{/if}
+					<button
+						type="button"
+						onclick={() => (activeFilter = "registered")}
+						class="rounded-md px-2.5 py-1 transition cursor-pointer select-none {activeFilter ===
+						'registered'
+							? 'bg-slate-800 text-slate-100 shadow-sm'
+							: 'text-slate-400 hover:text-slate-200'}"
+					>
+						{t("list.filterRegistered")}
+					</button>
+					<button
+						type="button"
+						onclick={() => (activeFilter = "unregistered")}
+						class="rounded-md px-2.5 py-1 transition cursor-pointer select-none {activeFilter ===
+						'unregistered'
+							? 'bg-slate-800 text-slate-100 shadow-sm'
+							: 'text-slate-400 hover:text-slate-200'}"
+					>
+						{t("list.filterUnregistered")}
+					</button>
+				</div>
+			{/if}
+
+			<!-- search -->
+			{#if fuseOptions}
+				<div class="relative w-full sm:w-64">
+					<input
+						type="text"
+						placeholder={t("list.searchPlaceholder")}
+						bind:value={searchQuery}
+						bind:this={searchInputEl}
+						class="w-full rounded-lg border border-slate-800 bg-slate-900 py-1.5 pl-3 pr-8 text-xs text-slate-200 placeholder-slate-500 focus:border-slate-700 focus:outline-none transition"
+					/>
+					{#if searchQuery}
+						<button
+							onclick={() => (searchQuery = "")}
+							class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs px-1 cursor-pointer"
+						>
+							✕
+						</button>
+					{/if}
+				</div>
+			{/if}
+		</div>
 	</div>
 
 	{#if sortOptions && activeSortBy && sortComparator}
